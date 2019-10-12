@@ -1,0 +1,6 @@
+**.hi
+**.o
+
+# VSC:
+.vscode
+*.code-workspace
