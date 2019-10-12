@@ -3,8 +3,8 @@
 
 name:                Klepl0
 version:             0.1.0.0
-synopsis:            Solution of the zeroth homework
-description:         Write a program that computes average number of words (whitespace-separated groups of characters) on each line in the standard input. As the output, write only single number rounded to 2 decimal places.
+synopsis:            Solution of the first homework
+-- description:         
 homepage:            https://github.com/jiriklepl/MFF-Haskell-2019.git
 license:             BSD3
 license-file:        LICENSE
