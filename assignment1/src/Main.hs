@@ -1,5 +1,8 @@
 module Main where
 
+import Control.Monad
+import Data.HashMap.Lazy hiding (foldl')
+import Data.HashSet
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Interact
 import System.Environment
@@ -12,7 +15,7 @@ data Cell
 
 data SimulationState =
   SimulationState
-    { cells :: [[Cell]]
+    { cells :: HashSet (Int, Int)
     , curX :: Int
     , curY :: Int
     , width :: Int
@@ -21,12 +24,7 @@ data SimulationState =
 
 initSimulation w h =
   SimulationState
-    { cells = replicate h . replicate w $ Dead
-    , curX = 0
-    , curY = 0
-    , width = w
-    , height = h
-    }
+    {cells = Data.HashSet.empty, curX = 0, curY = 0, width = w, height = h}
 
 drawWorld s@SimulationState { curX = x
                             , curY = y
@@ -34,29 +32,16 @@ drawWorld s@SimulationState { curX = x
                             , width = w
                             , height = h
                             } =
-  let drawLoop i j ((v:vs):vss) =
+  let draw c (i, j) =
         Translate
           (20 * fromIntegral i - fromIntegral (w - 1) * 10)
           (20 * fromIntegral j - fromIntegral (h - 1) * 10)
-          (color
-             (case (v, i - x, j - y) of
-                (Alive, 0, 0) -> dark blue
-                (Dead, 0, 0) -> light blue
-                (Alive, _, _) -> black
-                (Dead, _, _) -> white) $
-           rectangleSolid 18 18) :
-        drawLoop (i + 1) j (vs : vss)
-      drawLoop _ j ([]:vss) = drawLoop 0 (j + 1) vss
-      drawLoop _ _ [] = []
-   in Color black $ Pictures $ drawLoop 0 0 css
-
-instance Num a => Num [a] where
-  a + b = uncurry (+) <$> zip a b
-  a * b = uncurry (*) <$> zip a b
-  a - b = uncurry (-) <$> zip a b
-  abs a = abs <$> a
-  signum a = signum <$> a
-  fromInteger = repeat . fromInteger
+          (c (rectangleSolid 18 18))
+   in Color black $
+      Pictures $
+      (draw (color white) <$> liftM2 (,) [0 .. w - 1] [0 .. h - 1]) ++
+      (draw (color black) <$> Data.HashSet.toList css) ++
+      [draw (color red) (x, y)]
 
 handleEvent (EventKey (SpecialKey KeyLeft) Down _ _) s@SimulationState { curX = x
                                                                        , width = w
@@ -78,50 +63,43 @@ handleEvent (EventKey (Char 'x') Down _ _) s@SimulationState { curY = y
                                                              , curX = x
                                                              , cells = css
                                                              } =
-  let change :: Int -> Int -> [[Cell]] -> [[Cell]]
-      change 0 0 ((v:vs):vss) =
-        (((if v == Alive
-             then Dead
-             else Alive) :
-          vs) :
-         vss)
-      change i 0 ((v:vs):vss) =
-        let (vs':vss') = change (i - 1) 0 (vs : vss)
-         in (v : vs') : vss'
-      change i j (vs:vss) = vs : change i (j - 1) vss
-   in s {cells = change x y css}
-handleEvent (EventKey (SpecialKey KeySpace) Down _ _) s@SimulationState {cells = css} =
-  let rreverse (vs:vss) = rreverse vss ++ [reverse vs]
-      rreverse [] = []
-      expanded [vs] = (Dead : vs) : [Dead : map (const Dead) vs]
-      expanded (vs:vss) = (Dead : vs) : expanded vss
-      toNums =
-        (\vs ->
-           (\v ->
-              if v == Alive
-                then 1
-                else 0) <$>
-           vs) <$>
-        (rreverse . expanded . rreverse . expanded) css
-      neigs =
-        toNums + tail toNums + drop 2 toNums + map tail toNums +
-      --tail (map tail toNums) +
-        drop 2 (map tail toNums) +
-        map (drop 2) toNums +
-        tail (map (drop 2) toNums) +
-        drop 2 (map (drop 2) toNums)
-      toCells ((v:vs):vss) ((n:ns):nss) =
-        ((case (v, n) of
-            (Alive, 2) -> Alive
-            (_, 3) -> Alive
-            _ -> Dead) :
-         vs') :
-        vss'
-        where
-          vs':vss' = toCells (vs : vss) (ns : nss)
-      toCells ([]:vss) ([]:nss) = [] : toCells vss nss
-      toCells [] [] = []
-   in s {cells = toCells css neigs}
+  s
+    { cells =
+        if Data.HashSet.member (x, y) css
+          then Data.HashSet.delete (x, y) css
+          else Data.HashSet.insert (x, y) css
+    }
+handleEvent (EventKey (SpecialKey KeySpace) Down _ _) s@SimulationState { cells = css
+                                                                        , width = w
+                                                                        , height = h
+                                                                        } =
+  let addNeigh (x, y) =
+        alter
+          (\v ->
+             case v of
+               Just a -> Just (a + 1)
+               Nothing -> Just (1 :: Int))
+          (x, y)
+      addNeighs m (x, y) =
+        Prelude.foldr
+          addNeigh
+          m
+          (Prelude.filter
+             (/= (x, y))
+             (liftM2 (,) [x - 1, x, x + 1] [y - 1, y, y + 1]))
+      neighbors =
+        foldl' addNeighs (Data.HashMap.Lazy.empty :: HashMap (Int, Int) Int) css
+   in s
+        { cells =
+            keysSet
+              (filterWithKey
+                 (\k v ->
+                    case (k, v) of
+                      ((x, y), 3) -> x >= 0 && x < w && y >= 0 && y < h
+                      (loc, 2) -> Data.HashSet.member loc css
+                      _ -> False)
+                 neighbors)
+        }
 handleEvent _ n = n
 
 updateWorld _ = id
