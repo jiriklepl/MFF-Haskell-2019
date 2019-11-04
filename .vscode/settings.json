@@ -1,6 +1,9 @@
 {
     "cSpell.words": [
+        "Combinators",
         "foldl",
-        "foldr"
+        "foldr",
+        "parens",
+        "rword"
     ]
 }
