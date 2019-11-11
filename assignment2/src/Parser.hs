@@ -7,13 +7,12 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
-import AST
 import ParserMonad
 
-type Parser = Parsec ParserMonad String
+type Parser = ParsecT Void String ParserMonad
 
 sc :: Parser ()
-sc = L.space space1
+sc = space1
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
@@ -40,7 +39,7 @@ rword :: String -> Parser ()
 rword w = (lexeme . try) (string w *> notFollowedBy alphaNumChar)
 
 rws :: [String] -- list of reserved words
-rws = ["if","then","else","while","do","skip","true","false","not","and","or"]
+rws = ["if", "else", "def"]
 
 identifier :: Parser String
 identifier = (lexeme . try) (p >>= check)
