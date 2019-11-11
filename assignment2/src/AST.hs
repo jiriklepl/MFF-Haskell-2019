@@ -2,24 +2,25 @@ module AST where
 
 data Statement
     = EStmt Expression
+    | DStmt FunctionDef
     | CStmt ControlStatement
     | IStmt [Statement]
     deriving (Show)
 
 data Expression
     = IdExpr Identifier
-    | SLExpr StrLiteral
-    | NLExpr NumLiteral
+    | SLExpr String
+    | NLExpr Int
     | BOExpr Expression BinOp Expression
     | FCExpr FunctionCall
     deriving (Show)
 
-data Identifier
-    = Ident [Char]
+newtype Identifier
+    = Ident String
     deriving (Show)
 
-data StrLiteral
-    = StrLit [Char]
+newtype StrLiteral
+    = StrLit String
     deriving (Show)
 
 data BinOp
