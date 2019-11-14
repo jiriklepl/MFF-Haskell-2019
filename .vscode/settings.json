@@ -1,8 +1,10 @@
 {
     "cSpell.words": [
         "Combinators",
+        "cond",
         "foldl",
         "foldr",
+        "indentifier",
         "parens",
         "rword"
     ]
