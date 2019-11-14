@@ -63,7 +63,7 @@ idExpression :: Parser Expression
 idExpression = IdExpr <$> identifier
 
 strExpression :: Parser Expression
-strExpression = SLExpr <$> (quoted $ (many $ noneOf "\""))
+strExpression = SLExpr <$> quoted  (many $ noneOf "\"")
 
 numExpression :: Parser Expression
 numExpression = NLExpr <$> integer
