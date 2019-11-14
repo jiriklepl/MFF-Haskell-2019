@@ -9,10 +9,16 @@ import qualified Text.Megaparsec.Char.Lexer as L
 
 import ParserMonad
 
-type Parser = ParsecT Void String ParserMonad
+type Parser = Parsec Void String
 
 sc :: Parser ()
-sc = space1
+sc = many (oneOf " ") >> pure ()
+
+nl :: Parser Char
+nl = oneOf "\n"
+
+indentifier :: Parser Int
+indentifier = between sc eof (length <$> many (oneOf " \t\r\v"))
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
@@ -24,6 +30,9 @@ symbol = L.symbol sc
 
 parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")")
+
+quoted :: Parser a -> Parser a
+quoted = between (symbol "\"") (symbol "\"")
 
 -- | 'integer' parses an integer.
 
