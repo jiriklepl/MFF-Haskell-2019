@@ -8,19 +8,11 @@ data Statement
     deriving (Show)
 
 data Expression
-    = IdExpr Identifier
+    = IdExpr String
     | SLExpr String
-    | NLExpr Int
+    | NLExpr Integer
     | BOExpr Expression BinOp Expression
     | FCExpr FunctionCall
-    deriving (Show)
-
-newtype Identifier
-    = Ident String
-    deriving (Show)
-
-newtype StrLiteral
-    = StrLit String
     deriving (Show)
 
 data BinOp
@@ -35,12 +27,12 @@ data FunctionDef
     deriving (Show)
 
 data FunctionCall
-    = FunCall Identifier [Identifier]
+    = FunCall String [String]
     deriving (Show)
 
 data ControlStatement
     = IfStmt Expression Statement
     | IfElseStmt Expression Statement
     | ElseStmt Statement
-    | WhileStmt Statement
+    | WhileStmt Expression Statement
     deriving (Show)
