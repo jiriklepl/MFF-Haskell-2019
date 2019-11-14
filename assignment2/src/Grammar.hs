@@ -16,7 +16,6 @@ ccStatement :: Int -> Parser (Expression, Statement)
 ccStatement indent = do
     cond <- expression
     void (symbol ":")
-    nl
     stmt <- statement indent
     return (cond, stmt)
 
@@ -36,7 +35,6 @@ elseStatement :: Int -> Parser Statement
 elseStatement indent = do
     rword "else"
     void (symbol ":")
-    nl
     stmt <- statement indent
     return $ CStmt (ElseStmt stmt)
 
@@ -45,7 +43,6 @@ funDefinition indent = do
     rword "def"
     fcall <- funCall
     void (symbol ":")
-    nl
     stmt <- statement indent
     return $ DStmt (FunDef fcall stmt)
 
@@ -55,6 +52,7 @@ expression = funExpression
     <|> strExpression
     <|> numExpression
     <|> idExpression
+    <|> parExpression
 
 funExpression :: Parser Expression
 funExpression = FCExpr <$> funCall
@@ -80,16 +78,18 @@ binExpression = do
         '*' -> BOExpr expr1 Mul expr2
         '/' -> BOExpr expr1 Div expr2
 
+parExpression :: Parser Expression
+parExpression = parens expression
+
 statement :: Int -> Parser Statement
 statement indent = ifStatement indent
         <|> whileStatement indent
         <|> elseStatement indent
         <|> funDefinition indent
 
-
-
 argumentList :: String -> Parser [String]
-argumentList ident = (do
+argumentList ident =
+    (do
         void (symbol ")")
         return [ident])
     <|> (do
