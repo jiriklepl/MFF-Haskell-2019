@@ -12,13 +12,13 @@ import ParserMonad
 type Parser = Parsec Void String
 
 sc :: Parser ()
-sc = many (oneOf " ") >> pure ()
+sc = many (oneOf " \r\t\v\f") >> pure ()
 
 nl :: Parser Char
 nl = oneOf "\n"
 
 indentifier :: Parser Int
-indentifier = between sc eof (length <$> many (oneOf " \t\r\v"))
+indentifier = length <$> many (oneOf " \t\v\f\v")
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
@@ -48,7 +48,7 @@ rword :: String -> Parser ()
 rword w = (lexeme . try) (string w *> notFollowedBy alphaNumChar)
 
 rws :: [String] -- list of reserved words
-rws = ["if", "else", "def"]
+rws = ["if", "else", "def", "while"]
 
 identifier :: Parser String
 identifier = (lexeme . try) (p >>= check)
