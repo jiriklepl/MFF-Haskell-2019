@@ -1,10 +1,11 @@
 module AST where
 
 data Statement
-    = EStmt Expression
+    = Program [Statement]
     | DStmt FunctionDef
     | CStmt ControlStatement
     | IStmt [Statement]
+    | EStmt Expression
     deriving (Show)
 
 data Expression
@@ -15,11 +16,8 @@ data Expression
     | FCExpr FunctionCall
     deriving (Show)
 
-data BinOp
-    = Plus
-    | Minus
-    | Mul
-    | Div
+newtype BinOp
+    = BinOp String
     deriving (Show)
 
 data FunctionDef
@@ -27,12 +25,12 @@ data FunctionDef
     deriving (Show)
 
 data FunctionCall
-    = FunCall String [String]
+    = FunCall Expression [Expression]
     deriving (Show)
 
 data ControlStatement
     = IfStmt Expression Statement
-    | IfElseStmt Expression Statement
+    | ElifStmt Expression Statement
     | ElseStmt Statement
     | WhileStmt Expression Statement
     deriving (Show)
