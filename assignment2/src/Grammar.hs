@@ -11,13 +11,15 @@ import AST
 import Parser
 
 program = do
-    (IStmt stmts) <- indentStatement [-1]
+    (IStmt stmts) <- sc >> indentStatement [-1]
+    many (sc >> nl)
+    sc
     eof
     return $ Program stmts
 
 ccStatement :: [Int] -> Parser (Expression, Statement)
 ccStatement indent = do
-    cond <- expression
+    cond <- expression 
     void (symbol ":")
     stmt <- statement indent
     return (cond, stmt)
@@ -61,10 +63,16 @@ expression = try binExpression
     <|> simpleExpression
 
 simpleExpression :: Parser Expression
-simpleExpression = parExpression
+simpleExpression = try funExpression
     <|> strExpression
     <|> numExpression
-    <|> try funExpression
+    <|> parExpression
+    <|> idExpression
+
+simpleExpressionNoFun :: Parser Expression
+simpleExpressionNoFun = parExpression
+    <|> strExpression
+    <|> numExpression
     <|> idExpression
 
 funExpression :: Parser Expression
@@ -90,7 +98,7 @@ binOperator :: Parser String
 binOperator = foldl (<|>) empty (symbol <$> ["+", "-", "*", "/", "=", "<=", ">=", "<", ">"])
 
 parExpression :: Parser Expression
-parExpression = parens expression
+parExpression = ParExpr <$> parens expression
 
 inlineStatement :: [Int] -> Parser Statement
 inlineStatement indent = ifStatement indent
@@ -105,9 +113,13 @@ nlStatement indent = do
     nl
     (many . try) (sc >> nl)
     indent2 <- indentifier
-    if indent2 == head indent
-        then inlineStatement indent
-        else fail  $ show indent2 ++ " vs " ++ show indent
+    if indent2 == head indent then
+        inlineStatement indent
+    else if indent2 > head indent then do
+        stmt <- inlineStatement (indent2:indent)
+        stmts <- many . try $ nlStatement (indent2:indent)
+        return $ IStmt (stmt:stmts)
+    else fail  $ show indent2 ++ " vs " ++ show indent
 
 statement :: [Int] -> Parser Statement
 statement indent = (nl >> (many . try) (sc >> nl) >> indentStatement indent)
@@ -137,8 +149,24 @@ argumentList =
         ident <- expression
         return [ident])
 
+callList :: Parser [[Expression]]
+callList =
+    try (do
+        args <- callArgs
+        argsList <- callList
+        return (args : argsList))
+    <|> (do
+        args <- callArgs
+        return [args])
+    where callArgs = parens (try argumentList <|> pure [])
+
+
 funCall :: Parser FunctionCall
 funCall = do
-    ident <- idExpression
-    args <- parens (try argumentList <|> pure [])
-    return $ FunCall ident args
+    ident <- try simpleExpressionNoFun
+    argsList <- callList
+    return $ composeCall ident argsList
+    where
+        composeCall ident [args] = FunCall ident args
+        composeCall ident (args:argsSubList) =
+            composeCall (FCExpr $ FunCall ident args) argsSubList
