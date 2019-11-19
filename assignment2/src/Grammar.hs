@@ -18,7 +18,7 @@ program = evalStateT (do
     many (sc >> nl)
     sc
     eof
-    return $ Program stmts) ParserMonad{indents = [-1], idents=[], errorReport = []}
+    return $ Program stmts) ParserMonad{indents = [-1], idents=[[]], errorReport = []}
 
 ccStatement :: Parser (Expression, Statement)
 ccStatement = do
@@ -55,10 +55,31 @@ elseStatement = do
 funDefinition :: Parser Statement
 funDefinition = do
     rword "def"
-    fcall <- funCall
+    fdef <- funDefHeader
     void (symbol ":")
+    let (FunCall (IdExpr ident) _) = fdef
+        in do
+            state@ParserMonad{idents = ids} <- get
+            put (enterScope state{idents = (ident : head ids) : tail ids})
     stmt <- statement
-    return $ DStmt (FunDef fcall stmt)
+    state <- get
+    put (leaveScope state)
+    return $ DStmt $ FunDef fdef stmt
+
+funDefHeader :: Parser FunctionCall
+funDefHeader = do
+    ident <- idExpression
+    argsList <- parens defList
+    return $ FunCall ident argsList
+
+defList :: Parser [Expression]
+defList = do
+    ident <- idExpression
+    do
+        void (symbol ",")
+        args <- defList
+        return (ident : args)
+     <|> return [ident]
 
 expression :: Parser Expression
 expression = try binExpression
