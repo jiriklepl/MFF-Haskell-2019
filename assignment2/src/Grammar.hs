@@ -50,8 +50,7 @@ elseStatement :: Parser Statement
 elseStatement = do
     rword "else"
     void (symbol ":")
-    stmt <- statement
-    return $ CStmt (ElseStmt stmt)
+    CStmt . ElseStmt <$> statement
 
 funDefinition :: Parser Statement
 funDefinition = do
@@ -147,31 +146,27 @@ indentStatement = do
     else fail "indentation expected"
 
 argumentList :: Parser [Expression]
-argumentList =
-    try (do
+argumentList = do
         ident <- expression
+    (do
         void (symbol ",")
         args <- argumentList
         return (ident : args))
-    <|> (do
-        ident <- expression
-        return [ident])
+     <|> return [ident]
 
 callList :: Parser [[Expression]]
-callList =
-    try (do
+callList = do
         args <- callArgs
+    (do
         argsList <- callList
         return (args : argsList))
-    <|> (do
-        args <- callArgs
-        return [args])
+     <|> return [args]
     where callArgs = parens (try argumentList <|> pure [])
 
 
 funCall :: Parser FunctionCall
 funCall = do
-    ident <- try simpleExpressionNoFun
+    ident <- simpleExpressionNoFun
     argsList <- callList
     return $ composeCall ident argsList
     where
