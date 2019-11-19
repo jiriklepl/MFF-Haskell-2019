@@ -4,58 +4,61 @@ import Control.Monad (void)
 import Control.Monad.Combinators.Expr -- from parser-combinators
 import Data.Void
 import Text.Megaparsec
+import Control.Monad.State.Strict
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 import AST
 import Parser
+import ParserMonad
 
-program = do
-    (IStmt stmts) <- sc >> indentStatement [-1]
+program :: Parsec Void String Statement
+program = evalStateT (do
+    (IStmt stmts) <- sc >> indentStatement
     many (sc >> nl)
     sc
     eof
-    return $ Program stmts
+    return $ Program stmts) ParserMonad{indents = [-1], idents=[], errorReport = []}
 
-ccStatement :: [Int] -> Parser (Expression, Statement)
-ccStatement indent = do
+ccStatement :: Parser (Expression, Statement)
+ccStatement = do
     cond <- expression 
     void (symbol ":")
-    stmt <- statement indent
+    stmt <- statement
     return (cond, stmt)
 
-ifStatement :: [Int] -> Parser Statement
-ifStatement indent = do
+ifStatement :: Parser Statement
+ifStatement = do
     rword "if"
-    (expr, stmt) <- ccStatement indent
+    (expr, stmt) <- ccStatement
     return $ CStmt (IfStmt expr stmt)
 
-elifStatement :: [Int] -> Parser Statement
-elifStatement indent = do
+elifStatement :: Parser Statement
+elifStatement = do
     rword "else"
     rword "if"
-    (expr, stmt) <- ccStatement indent
+    (expr, stmt) <- ccStatement
     return $ CStmt (ElifStmt expr stmt)
 
-whileStatement :: [Int] -> Parser Statement
-whileStatement indent = do
+whileStatement :: Parser Statement
+whileStatement = do
     rword "while"
-    (expr, stmt) <- ccStatement indent
+    (expr, stmt) <- ccStatement
     return $ CStmt (WhileStmt expr stmt)
 
-elseStatement :: [Int] -> Parser Statement
-elseStatement indent = do
+elseStatement :: Parser Statement
+elseStatement = do
     rword "else"
     void (symbol ":")
-    stmt <- statement indent
+    stmt <- statement
     return $ CStmt (ElseStmt stmt)
 
-funDefinition :: [Int] -> Parser Statement
-funDefinition indent = do
+funDefinition :: Parser Statement
+funDefinition = do
     rword "def"
     fcall <- funCall
     void (symbol ":")
-    stmt <- statement indent
+    stmt <- statement
     return $ DStmt (FunDef fcall stmt)
 
 expression :: Parser Expression
@@ -100,43 +103,48 @@ binOperator = foldl (<|>) empty (symbol <$> ["+", "-", "*", "/", "=", "<=", ">="
 parExpression :: Parser Expression
 parExpression = ParExpr <$> parens expression
 
-inlineStatement :: [Int] -> Parser Statement
-inlineStatement indent = ifStatement indent
-    <|> whileStatement indent
-    <|> funDefinition indent
-    <|> try (elifStatement indent)
-    <|> elseStatement indent
+inlineStatement :: Parser Statement
+inlineStatement = ifStatement
+    <|> whileStatement
+    <|> funDefinition
+    <|> try elifStatement
+    <|> elseStatement
     <|> exprStatement
 
-nlStatement :: [Int] -> Parser Statement
-nlStatement indent = do
+nlStatement :: Parser Statement
+nlStatement = do
     nl
     (many . try) (sc >> nl)
     indent2 <- indentifier
+    ParserMonad{indents = indent} <- get
     if indent2 == head indent then
-        inlineStatement indent
+        inlineStatement
     else if indent2 > head indent then do
-        stmt <- inlineStatement (indent2:indent)
-        stmts <- many . try $ nlStatement (indent2:indent)
+        stmt <- inlineStatement
+        state <- get
+        put state{indents = indent2:indent}
+        stmts <- many . try $ nlStatement
         return $ IStmt (stmt:stmts)
     else fail  $ show indent2 ++ " vs " ++ show indent
 
-statement :: [Int] -> Parser Statement
-statement indent = (nl >> (many . try) (sc >> nl) >> indentStatement indent)
-    <|> inlineStatement indent
+statement :: Parser Statement
+statement = (nl >> (many . try) (sc >> nl) >> indentStatement)
+    <|> inlineStatement
 
 exprStatement :: Parser Statement
 exprStatement = EStmt <$> expression
 
-indentStatement :: [Int] -> Parser Statement
-indentStatement indent = do
+indentStatement :: Parser Statement
+indentStatement = do
     indent2 <- indentifier
-    case compare indent2 $ head indent of
-        GT -> do
-            stmt <- inlineStatement (indent2:indent)
-            stmts <- many . try $ nlStatement (indent2:indent)
-            return $ IStmt (stmt:stmts)
-        _ -> fail "indentation expected"
+    ParserMonad{indents = indent} <- get
+    if indent2 > head indent then do
+        stmt <- inlineStatement
+        state <- get
+        put state{indents = indent2:indent}
+        stmts <- many . try $ nlStatement
+        return $ IStmt (stmt:stmts)
+    else fail "indentation expected"
 
 argumentList :: Parser [Expression]
 argumentList =

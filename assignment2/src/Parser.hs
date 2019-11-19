@@ -3,13 +3,14 @@ module Parser where
 import Control.Monad (void)
 import Control.Monad.Combinators.Expr -- from parser-combinators
 import Data.Void
+import Control.Monad.State.Strict
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 import ParserMonad
 
-type Parser = Parsec Void String
+type Parser = StateT ParserMonad (Parsec Void String)
 
 sc :: Parser ()
 sc = many (oneOf " \r\t\v\f") >> pure ()
