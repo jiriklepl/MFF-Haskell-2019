@@ -3,6 +3,7 @@ module Pretty where
 import Text.PrettyPrint
 
 import AST
+import ErrorMessage
 
 class Pretty a where
     pretty :: a -> Doc
@@ -13,6 +14,7 @@ tab = nest 4
 ppshow :: Pretty a => a -> String
 ppshow = renderStyle (style {mode=PageMode, lineLength = 80}) . pretty
 
+-- AST:
 instance Pretty FunctionCall where
     pretty (FunCall expr exprs) =
         pretty expr <> (parens . sep . punctuate comma) (pretty <$> exprs)
@@ -134,3 +136,21 @@ instance Pretty ControlStatement where
         $+$ tab (pretty stmt)
         $+$ rbrace
         $+$ text ""
+
+-- Errors:
+instance Pretty ErrorReport where
+    pretty (ErrorReport []) = text "No errors found."
+    pretty (ErrorReport messages) =
+        int len
+        <+> text (if len == 1 then "error" else "errors")
+        <+> text "found:"
+        $+$ vcat (pretty <$> reverse messages)
+        where len = length messages
+
+instance Pretty ErrorMessage where
+    pretty (NotDefinedMessage id ln) =
+        text "identifier '"
+        <> text id
+        <> text "' is not defined (at line:"
+        <+> integer ln
+        <> char ')'
