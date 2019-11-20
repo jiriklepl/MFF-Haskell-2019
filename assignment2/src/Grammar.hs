@@ -111,7 +111,7 @@ idExpression = do
     if isDefined id state
         then return idExpr
         else do
-            put $ writeError (NotDefinedMessage id) $ define id state
+            put $ makeNotDefined id $ define id state
             return idExpr
 
 idExpressionPrimitive :: Parser Expression
