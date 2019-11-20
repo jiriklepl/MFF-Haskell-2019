@@ -68,13 +68,13 @@ funDefinition = do
 
 funDefHeader :: Parser FunctionCall
 funDefHeader = do
-    ident <- idExpression
+    ident <- idExpressionPrimitive
     argsList <- parens defList
     return $ FunCall ident argsList
 
 defList :: Parser [Expression]
 defList = do
-    ident <- idExpression
+    ident <- idExpressionPrimitive
     do
         void (symbol ",")
         args <- defList
@@ -99,7 +99,10 @@ funExpression :: Parser Expression
 funExpression = FCExpr <$> funCall
 
 idExpression :: Parser Expression
-idExpression = IdExpr <$> identifier
+idExpression = idExpressionPrimitive
+
+idExpressionPrimitive :: Parser Expression
+idExpressionPrimitive = IdExpr <$> identifier
 
 strExpression :: Parser Expression
 strExpression = SLExpr <$> quoted (many $ noneOf "\"")
