@@ -1,6 +1,7 @@
 module ParserMonad where
 
 import ErrorMessage
+import Standard
 
 enterScope parserM@ParserMonad{idents = ids} = parserM{idents = []:ids}
 leaveScope parserM@ParserMonad{idents = ids} = parserM{idents = tail ids}
@@ -32,7 +33,7 @@ data ParserMonad = ParserMonad
 
 initParserMonad = ParserMonad
     { indents = [-1]
-    , idents = []
+    , idents = [standardIdentifiers]
     , errorReport = ErrorReport []
     , lineNo = 1
     }
