@@ -21,6 +21,9 @@ program = runStateT (do
         eof
         return $ Program stmts) initParserMonad
 
+getReport :: ParserMonad -> ErrorReport
+getReport ParserMonad{errorReport = report} = report
+
 ccStatement :: Parser (Expression, Statement)
 ccStatement = do
     cond <- expression
