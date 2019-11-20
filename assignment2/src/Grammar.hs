@@ -11,6 +11,7 @@ import qualified Text.Megaparsec.Char.Lexer as L
 import AST
 import Parser
 import ParserMonad
+import ErrorMessage
 
 program :: Parsec Void String Statement
 program = evalStateT (do
@@ -60,7 +61,7 @@ funDefinition = do
     let (FunCall (IdExpr ident) _) = fdef
         in do
             state@ParserMonad{idents = ids} <- get
-            put (enterScope state{idents = (ident : head ids) : tail ids})
+            put (enterScope $ define ident state)
     stmt <- statement
     state <- get
     put (leaveScope state)
@@ -99,7 +100,14 @@ funExpression :: Parser Expression
 funExpression = FCExpr <$> funCall
 
 idExpression :: Parser Expression
-idExpression = idExpressionPrimitive
+idExpression = do
+    idExpr@(IdExpr id) <- idExpressionPrimitive
+    state <- get
+    if isDefined id state
+        then return idExpr
+        else do
+            put $ writeError (NotDefinedMessage id) $ define id state
+            return idExpr
 
 idExpressionPrimitive :: Parser Expression
 idExpressionPrimitive = IdExpr <$> identifier

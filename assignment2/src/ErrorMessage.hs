@@ -1,3 +1,5 @@
 module ErrorMessage where
 
-data ErrorMessage = ErrorMessage String
+data ErrorMessage
+    = SimpleErrorMessage String
+    | NotDefinedMessage String
