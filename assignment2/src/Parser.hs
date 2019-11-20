@@ -16,7 +16,10 @@ sc :: Parser ()
 sc = many (oneOf " \r\t\v\f") >> pure ()
 
 nl :: Parser Char
-nl = oneOf "\n"
+nl = do
+  state@ParserMonad{lineNo = ln} <- get
+  put state{lineNo = ln + 1}
+  oneOf "\n"
 
 indentifier :: Parser Int
 indentifier = length <$> many (oneOf " \t\v\f\v")

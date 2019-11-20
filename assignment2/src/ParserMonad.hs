@@ -24,7 +24,13 @@ writeError message parserM@ParserMonad{errorReport = report} =
 data ParserMonad = ParserMonad
     { indents :: [Int]
     , idents :: [[String]]
-    , errorReport :: [ErrorMessage]
+    , errorReport :: ErrorReport
+    , lineNo :: Integer
     }
 
-initParserMonad = ParserMonad{indents = [-1], idents = [], errorReport = []}
+initParserMonad = ParserMonad
+    { indents = [-1]
+    , idents = []
+    , errorReport = ErrorReport []
+    , lineNo = 1
+    }
