@@ -166,6 +166,8 @@ commonNlIndentStmt indent2 = do
     state <- get
     put state{indents = indent2:indent}
     stmts <- many . try $ nlStatement
+    state <- get
+    put state{indents = indent}
     return $ IStmt (stmt:stmts)
 
 nlStatement :: Parser Statement
