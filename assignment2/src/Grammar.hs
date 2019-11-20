@@ -14,12 +14,12 @@ import ParserMonad
 import ErrorMessage
 
 program :: Parsec Void String (Statement, ParserMonad)
-program = runStateT (do
-        (IStmt stmts) <- sc >> indentStatement
+program = runStateT ((many . try) (sc >> nl) >> sc >> (do
+        (IStmt stmts) <- indentStatement
         many (sc >> nl)
         sc
         eof
-        return $ Program stmts) initParserMonad
+        return $ Program stmts) <|> (eof >> return (Program []))) initParserMonad
 
 getReport :: ParserMonad -> ErrorReport
 getReport ParserMonad{errorReport = ErrorReport messages} =
