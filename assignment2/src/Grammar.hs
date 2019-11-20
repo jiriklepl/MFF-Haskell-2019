@@ -22,7 +22,7 @@ program = evalStateT (do
 
 ccStatement :: Parser (Expression, Statement)
 ccStatement = do
-    cond <- expression 
+    cond <- expression
     void (symbol ":")
     stmt <- statement
     return (cond, stmt)
@@ -146,7 +146,7 @@ nlStatement = do
         inlineStatement
     else if indent2 > head indent
         then commonNlIndentStmt indent2
-    else fail  $ show indent2 ++ " vs " ++ show indent
+        else fail  $ show indent2 ++ " vs " ++ show indent
 
 statement :: Parser Statement
 statement = (nl >> (many . try) (sc >> nl) >> indentStatement)
@@ -161,11 +161,11 @@ indentStatement = do
     ParserMonad{indents = indent} <- get
     if indent2 > head indent
         then commonNlIndentStmt indent2
-    else fail "indentation expected"
+        else fail "indentation expected"
 
 argumentList :: Parser [Expression]
 argumentList = do
-        ident <- expression
+    ident <- expression
     (do
         void (symbol ",")
         args <- argumentList
@@ -174,7 +174,7 @@ argumentList = do
 
 callList :: Parser [[Expression]]
 callList = do
-        args <- callArgs
+    args <- callArgs
     (do
         argsList <- callList
         return (args : argsList))
