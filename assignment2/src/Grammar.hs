@@ -131,7 +131,7 @@ binExpression = do
 
 assExpression :: Parser Expression
 assExpression = do
-    idExpr@(IdExpr id) <- idExpression
+    idExpr@(IdExpr id) <- idExpressionPrimitive
     assSign <- symbol "="
     expr <- expression
     state <- get
