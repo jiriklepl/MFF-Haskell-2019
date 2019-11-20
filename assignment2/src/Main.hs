@@ -24,7 +24,8 @@ main = let
             Right a -> do
                 putStrLn "code starts here:"
                 (putStrLn . ppshow) (fst a)
-                {- (putStrLn . ppshow . getReport) (snd a) -}
+                putStrLn "Compiler errors start here:"
+                (putStrLn . ppshow . getReport) (snd a)
                 putStrLn "\nAnalysis starts here:"
                 (putStrLn . ppshow) (runAnalyzer (fst a))
             Left e -> print e >> fail "parse error"
