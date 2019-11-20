@@ -84,6 +84,7 @@ defList = do
 
 expression :: Parser Expression
 expression = try binExpression
+    <|> try assExpression
     <|> simpleExpression
 
 simpleExpression :: Parser Expression
@@ -121,15 +122,24 @@ numExpression = NLExpr <$> integer
 binExpression :: Parser Expression
 binExpression = do
     expr1 <- simpleExpression
-    symbol <- binOperator
-    BOExpr expr1 (BinOp symbol) <$> expression
+    sign <- binOperator
+    BOExpr expr1 (BinOp sign) <$> expression
+
+assExpression :: Parser Expression
+assExpression = do
+    idExpr@(IdExpr id) <- idExpression
+    assSign <- symbol "="
+    expr <- expression
+    state <- get
+    put $ define id state
+    return $ BOExpr idExpr (BinOp assSign) expr
 
 binOperator :: Parser String
 binOperator =
     foldl
     (<|>)
     empty
-    (symbol <$> ["+", "-", "*", "/", "=", "<=", ">=", "<", ">"])
+    (symbol <$> ["+", "-", "*", "/", "<=", ">=", "<", ">"])
 
 parExpression :: Parser Expression
 parExpression = ParExpr <$> parens expression
