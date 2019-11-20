@@ -77,7 +77,7 @@ funDefinition = do
 funDefHeader :: Parser FunctionCall
 funDefHeader = do
     ident <- idExpressionPrimitive
-    argsList <- parens defList
+    argsList <- parens (try defList <|> pure [])
     return $ FunCall ident argsList
 
 defList :: Parser [Expression]
