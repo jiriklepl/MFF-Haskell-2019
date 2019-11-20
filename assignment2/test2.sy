@@ -1,0 +1,10 @@
+def a(rec):
+  def f():
+    rec()
+  f
+
+def fix(f):
+  def fomega(x): f(x(x))
+  fomega(fomega)
+
+fix(a)()

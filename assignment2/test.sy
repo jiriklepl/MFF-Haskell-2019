@@ -1,1 +1,4 @@
-if a + b:
+d = "asd"
+def a(b):
+  c = b+d+e
+print(a(c))
