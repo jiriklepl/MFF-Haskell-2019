@@ -1,4 +1,4 @@
-module Grammar where
+module Grammar(program, getReport) where
 
 import Control.Monad (void)
 import Control.Monad.Combinators.Expr -- from parser-combinators
@@ -22,7 +22,8 @@ program = runStateT (do
         return $ Program stmts) initParserMonad
 
 getReport :: ParserMonad -> ErrorReport
-getReport ParserMonad{errorReport = report} = report
+getReport ParserMonad{errorReport = ErrorReport messages} =
+    ErrorReport $ reverse messages
 
 ccStatement :: Parser (Expression, Statement)
 ccStatement = do

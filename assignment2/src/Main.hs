@@ -10,6 +10,7 @@ import System.IO
 
 import Grammar
 import Pretty
+import Analyzer
 
 main :: IO ()
 main = let
@@ -21,9 +22,11 @@ main = let
                 hGetContents handle
         case parse program arg contents of
             Right a -> do
-                (putStrLn . ppshow . getReport) (snd a)
                 putStrLn "code starts here:"
                 (putStrLn . ppshow) (fst a)
+                {- (putStrLn . ppshow . getReport) (snd a) -}
+                putStrLn "\nAnalysis starts here:"
+                (putStrLn . ppshow) (runAnalyzer (fst a))
             Left e -> print e >> fail "parse error"
     in do
         args <- getArgs

@@ -1,8 +1,11 @@
 module ErrorMessage where
 
-data ErrorReport = ErrorReport [ErrorMessage]
+import AST
+
+data ErrorReport = ErrorReport [ErrorMessage] deriving(Show)
+data Context = Context [Statement] deriving(Show)
 
 data ErrorMessage
-    = SimpleErrorMessage String Integer
+    = NotDefinedContextMessage Context String
     | NotDefinedMessage String Integer
     deriving (Show)

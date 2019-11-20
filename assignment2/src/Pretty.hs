@@ -1,4 +1,4 @@
-module Pretty where
+module Pretty(ppshow) where
 
 import Text.PrettyPrint
 
@@ -140,11 +140,12 @@ instance Pretty ControlStatement where
 -- Errors:
 instance Pretty ErrorReport where
     pretty (ErrorReport []) = text "No errors found."
+
     pretty (ErrorReport messages) =
         int len
         <+> text (if len == 1 then "error" else "errors")
         <+> text "found:"
-        $+$ vcat (pretty <$> reverse messages)
+        $+$ vcat (pretty <$> messages)
         where len = length messages
 
 instance Pretty ErrorMessage where
@@ -153,3 +154,25 @@ instance Pretty ErrorMessage where
         <> text id
         <> text "' at line:"
         <+> integer ln
+
+    pretty (NotDefinedContextMessage context id) =
+        text "Error: Undeclared identifier '"
+        <> text id
+        <> char '\''
+        $+$ pretty context
+
+-- Analyzer
+instance Pretty Context where
+    pretty (Context []) = text ""
+
+    pretty (Context (DStmt (FunDef fcall _) : stmts)) =
+        text " .. found in a function definition '"
+        <> pretty fcall
+        <> char '\''
+        $+$ pretty (Context stmts)
+
+    pretty (Context (EStmt expr : stmts)) =
+        text " .. found in an expression '"
+        <> pretty expr
+        <> char '\''
+        $+$ pretty (Context stmts)
