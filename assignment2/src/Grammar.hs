@@ -13,13 +13,13 @@ import Parser
 import ParserMonad
 import ErrorMessage
 
-program :: Parsec Void String Statement
-program = evalStateT (do
-    (IStmt stmts) <- sc >> indentStatement
-    many (sc >> nl)
-    sc
-    eof
-    return $ Program stmts) initParserMonad
+program :: Parsec Void String (Statement, ParserMonad)
+program = runStateT (do
+        (IStmt stmts) <- sc >> indentStatement
+        many (sc >> nl)
+        sc
+        eof
+        return $ Program stmts) initParserMonad
 
 ccStatement :: Parser (Expression, Statement)
 ccStatement = do
