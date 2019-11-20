@@ -114,7 +114,11 @@ binExpression = do
     BOExpr expr1 (BinOp symbol) <$> expression
 
 binOperator :: Parser String
-binOperator = foldl (<|>) empty (symbol <$> ["+", "-", "*", "/", "=", "<=", ">=", "<", ">"])
+binOperator =
+    foldl
+    (<|>)
+    empty
+    (symbol <$> ["+", "-", "*", "/", "=", "<=", ">=", "<", ">"])
 
 parExpression :: Parser Expression
 parExpression = ParExpr <$> parens expression
