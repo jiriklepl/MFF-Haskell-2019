@@ -149,8 +149,7 @@ instance Pretty ErrorReport where
 
 instance Pretty ErrorMessage where
     pretty (NotDefinedMessage id ln) =
-        text "identifier '"
+        text "Error: Undeclared identifier '"
         <> text id
-        <> text "' is not defined (at line:"
+        <> text "' at line:"
         <+> integer ln
-        <> char ')'
