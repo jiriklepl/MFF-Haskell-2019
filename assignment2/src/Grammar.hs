@@ -87,10 +87,7 @@ expression = try binExpression
 
 simpleExpression :: Parser Expression
 simpleExpression = try funExpression
-    <|> strExpression
-    <|> numExpression
-    <|> parExpression
-    <|> idExpression
+    <|> simpleExpressionNoFun
 
 simpleExpressionNoFun :: Parser Expression
 simpleExpressionNoFun = parExpression
@@ -114,8 +111,7 @@ binExpression :: Parser Expression
 binExpression = do
     expr1 <- simpleExpression
     symbol <- binOperator
-    expr2 <- expression
-    return $ BOExpr expr1 (BinOp symbol) expr2
+    BOExpr expr1 (BinOp symbol) <$> expression
 
 binOperator :: Parser String
 binOperator = foldl (<|>) empty (symbol <$> ["+", "-", "*", "/", "=", "<=", ">=", "<", ">"])
@@ -131,6 +127,15 @@ inlineStatement = ifStatement
     <|> elseStatement
     <|> exprStatement
 
+commonNlIndentStmt :: Int -> Parser Statement
+commonNlIndentStmt indent2 = do
+    ParserMonad{indents = indent} <- get
+    stmt <- inlineStatement
+    state <- get
+    put state{indents = indent2:indent}
+    stmts <- many . try $ nlStatement
+    return $ IStmt (stmt:stmts)
+
 nlStatement :: Parser Statement
 nlStatement = do
     nl
@@ -139,12 +144,8 @@ nlStatement = do
     ParserMonad{indents = indent} <- get
     if indent2 == head indent then
         inlineStatement
-    else if indent2 > head indent then do
-        stmt <- inlineStatement
-        state <- get
-        put state{indents = indent2:indent}
-        stmts <- many . try $ nlStatement
-        return $ IStmt (stmt:stmts)
+    else if indent2 > head indent
+        then commonNlIndentStmt indent2
     else fail  $ show indent2 ++ " vs " ++ show indent
 
 statement :: Parser Statement
@@ -158,12 +159,8 @@ indentStatement :: Parser Statement
 indentStatement = do
     indent2 <- indentifier
     ParserMonad{indents = indent} <- get
-    if indent2 > head indent then do
-        stmt <- inlineStatement
-        state <- get
-        put state{indents = indent2:indent}
-        stmts <- many . try $ nlStatement
-        return $ IStmt (stmt:stmts)
+    if indent2 > head indent
+        then commonNlIndentStmt indent2
     else fail "indentation expected"
 
 argumentList :: Parser [Expression]
@@ -188,8 +185,7 @@ callList = do
 funCall :: Parser FunctionCall
 funCall = do
     ident <- simpleExpressionNoFun
-    argsList <- callList
-    return $ composeCall ident argsList
+    composeCall ident <$> callList
     where
         composeCall ident [args] = FunCall ident args
         composeCall ident (args:argsSubList) =
