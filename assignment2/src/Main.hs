@@ -12,6 +12,9 @@ import Pretty
 main :: IO ()
 main = do
     contents <- getContents
-    case parse (fst <$> program) "" contents of
-        Right a -> (putStrLn . ppshow) a
+    case parse program "" contents of
+        Right a -> do
+            (putStrLn . ppshow . getReport) (snd a)
+            putStrLn "code starts here:"
+            (putStrLn . ppshow) (fst a)
         Left e -> print e >> fail "parse error"
