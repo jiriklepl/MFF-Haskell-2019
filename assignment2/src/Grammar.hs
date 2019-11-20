@@ -102,7 +102,7 @@ idExpression :: Parser Expression
 idExpression = IdExpr <$> identifier
 
 strExpression :: Parser Expression
-strExpression = SLExpr <$> quoted  (many $ noneOf "\"")
+strExpression = SLExpr <$> quoted (many $ noneOf "\"")
 
 numExpression :: Parser Expression
 numExpression = NLExpr <$> integer
@@ -150,7 +150,7 @@ nlStatement = do
         inlineStatement
     else if indent2 > head indent
         then commonNlIndentStmt indent2
-        else fail  $ show indent2 ++ " vs " ++ show indent
+        else fail $ show indent2 ++ " vs " ++ show indent
 
 statement :: Parser Statement
 statement = (nl >> (many . try) (sc >> nl) >> indentStatement)
@@ -184,7 +184,6 @@ callList = do
         return (args : argsList))
      <|> return [args]
     where callArgs = parens (try argumentList <|> pure [])
-
 
 funCall :: Parser FunctionCall
 funCall = do

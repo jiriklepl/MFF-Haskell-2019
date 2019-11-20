@@ -19,6 +19,7 @@ instance Pretty FunctionCall where
 
 instance Pretty Statement where
     pretty (Program stmts) = vcat (pretty <$> stmts)
+
     pretty (DStmt (FunDef funCall (IStmt stmts))) =
         text "def"
         <+> pretty funCall
@@ -27,6 +28,7 @@ instance Pretty Statement where
         $+$ tab (foldr ($+$) empty (pretty <$> stmts))
         $+$ rbrace
         $+$ text ""
+
     pretty (DStmt (FunDef funCall stmt)) =
         text "def"
         <+> pretty funCall
@@ -35,8 +37,10 @@ instance Pretty Statement where
         $+$ tab (pretty stmt)
         $+$ rbrace
         $+$ text ""
+
     pretty (CStmt cstmt) = pretty cstmt
-    pretty (IStmt stmts) = 
+
+    pretty (IStmt stmts) =
         lbrace
         $+$ tab (foldr ($+$) empty (pretty <$> stmts))
         $+$ rbrace
@@ -44,13 +48,18 @@ instance Pretty Statement where
 
 instance Pretty Expression where
     pretty (IdExpr id) = text id
+
     pretty (SLExpr str) = char '"' <> text str <> char '"'
+
     pretty (ParExpr expr) = parens $ pretty expr
+
     pretty (NLExpr num) = integer num
+
     pretty (BOExpr expr1 (BinOp str) expr2) =
         pretty expr1
         <+> text str
         <+> pretty expr2
+
     pretty (FCExpr funCall) = pretty funCall
 
 instance Pretty ControlStatement where
