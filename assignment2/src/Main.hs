@@ -13,5 +13,5 @@ main :: IO ()
 main = do
     contents <- getContents
     case parse program "" contents of
-      Right a -> (putStrLn . ppshow) a
-      Left e -> print e >> fail "parse error"
+        Right a -> (putStrLn . ppshow) a
+        Left e -> print e >> fail "parse error"
