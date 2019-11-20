@@ -27,4 +27,6 @@ main = let
             Left e -> print e >> fail "parse error"
     in do
         args <- getArgs
-        sequence_ (parseFile <$> args)
+        sequence_ $ parseFile <$> if null args
+            then ["-"]
+            else args
