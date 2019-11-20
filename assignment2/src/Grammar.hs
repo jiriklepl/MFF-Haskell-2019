@@ -157,11 +157,10 @@ nlStatement = do
     (many . try) (sc >> nl)
     indent2 <- indentifier
     ParserMonad{indents = indent} <- get
-    if indent2 == head indent then
-        inlineStatement
-    else if indent2 > head indent
-        then commonNlIndentStmt indent2
-        else fail $ show indent2 ++ " vs " ++ show indent
+    case compare indent2 $ head indent of
+        EQ -> inlineStatement
+        GT -> commonNlIndentStmt indent2
+        _  -> fail $ show indent2 ++ " vs " ++ show indent
 
 statement :: Parser Statement
 statement = (nl >> (many . try) (sc >> nl) >> indentStatement)
