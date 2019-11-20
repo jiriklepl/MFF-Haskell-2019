@@ -58,10 +58,14 @@ funDefinition = do
     rword "def"
     fdef <- funDefHeader
     void (symbol ":")
-    let (FunCall (IdExpr ident) _) = fdef
+    let (FunCall (IdExpr ident) idents) = fdef
         in do
             state@ParserMonad{idents = ids} <- get
-            put (enterScope $ define ident state)
+            put (
+                foldr
+                define
+                (enterScope $ define ident state)
+                ((\(IdExpr id) -> id) <$> idents))
     stmt <- statement
     state <- get
     put (leaveScope state)
