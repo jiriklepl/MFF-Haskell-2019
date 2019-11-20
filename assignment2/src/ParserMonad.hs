@@ -17,9 +17,11 @@ define id parserM@ParserMonad{idents = ids} =
         defineHelp id (some:rest) = parserM{idents = (id:some) : rest}
     in defineHelp id ids
 
-writeError :: ErrorMessage -> ParserMonad -> ParserMonad
-writeError message parserM@ParserMonad{errorReport = report} =
-    parserM{errorReport = message:report}
+makeNotDefined :: String -> ParserMonad -> ParserMonad
+makeNotDefined message parserM@ParserMonad{
+    errorReport = (ErrorReport messages),
+    lineNo = ln} = parserM{
+        errorReport = ErrorReport (NotDefinedMessage message ln : messages)}
 
 data ParserMonad = ParserMonad
     { indents :: [Int]
