@@ -18,7 +18,7 @@ program = evalStateT (do
     many (sc >> nl)
     sc
     eof
-    return $ Program stmts) ParserMonad{indents = [-1], idents=[[]], errorReport = []}
+    return $ Program stmts) initParserMonad
 
 ccStatement :: Parser (Expression, Statement)
 ccStatement = do

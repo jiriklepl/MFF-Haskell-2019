@@ -16,3 +16,5 @@ data ParserMonad = ParserMonad
     , idents :: [[String]]
     , errorReport :: [ErrorMessage]
     }
+
+initParserMonad = ParserMonad{indents = [-1], idents=[[]], errorReport = []}
