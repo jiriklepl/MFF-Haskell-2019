@@ -62,6 +62,8 @@ instance Pretty Expression where
         <+> text str
         <+> pretty expr2
 
+    pretty (NeExpr expr) = char '-' <> pretty expr
+
     pretty (FCExpr funCall) = pretty funCall
 
 instance Pretty ControlStatement where

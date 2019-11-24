@@ -12,6 +12,7 @@ data Expression
     = IdExpr String
     | SLExpr String
     | NLExpr Integer
+    | NeExpr Expression
     | ParExpr Expression
     | BOExpr Expression BinOp Expression
     | FCExpr FunctionCall

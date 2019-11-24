@@ -103,6 +103,7 @@ simpleExpressionNoFun :: Parser Expression
 simpleExpressionNoFun = parExpression
     <|> strExpression
     <|> numExpression
+    <|> negExpression
     <|> idExpression
 
 funExpression :: Parser Expression
@@ -151,6 +152,9 @@ binOperator =
 
 parExpression :: Parser Expression
 parExpression = ParExpr <$> parens expression
+
+negExpression :: Parser Expression
+negExpression = NeExpr <$> (symbol "-" >> expression)
 
 inlineStatement :: Parser Statement
 inlineStatement = ifStatement
