@@ -2,14 +2,18 @@
     "cSpell.words": [
         "Combinators",
         "cond",
+        "cstmt",
         "elif",
         "eval",
+        "fcall",
         "foldl",
         "foldr",
         "idents",
         "indentifier",
         "parens",
+        "ppshow",
         "rword",
-        "stmts"
+        "stmts",
+        "vcat"
     ]
 }
