@@ -18,7 +18,7 @@ cabal-version:       >= 1.10
 
 executable slepys-format
   main-is:             Main.hs
-  -- other-modules:
+  other-modules:       Analyzer AnalyzerState AST ErrorMessage Grammar Parser ParserMonad Pretty Standard
   -- other-extensions:
   build-depends:       base >= 4.9 && < 4.10,
     megaparsec >= 7.0 && < 7.1,
